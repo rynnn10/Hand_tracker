@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AI Hand Tracker - Riyan 2025</title>
+    
+    <!-- Library MediaPipe -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    
+    <!-- Font Keren -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            margin: 0;
+            background-color: #050505; /* Warna dasar gelap */
+            font-family: 'Rajdhani', sans-serif;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* --- BACKGROUND PARTIKEL --- */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0; /* Paling belakang */
+        }
+
+        /* --- UI LAYOUT (Z-Index harus > 0 agar di atas partikel) --- */
+        header {
+            text-align: center;
+            padding-top: 15px;
+            z-index: 2;
+            position: relative;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.8);
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            margin: 0;
+            letter-spacing: 3px;
+            background: linear-gradient(90deg, #00f2ff, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 10px rgba(0, 242, 255, 0.5));
+        }
+
+        p.subtitle {
+            font-size: 1rem;
+            color: #ccc;
+            margin-top: 5px;
+            letter-spacing: 2px;
+        }
+
+        .container {
+            position: relative;
+            z-index: 2;
+            width: 90%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Frame Video Cyberpunk */
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 0 40px rgba(0, 242, 255, 0.2);
+            border: 1px solid rgba(0, 242, 255, 0.3);
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            aspect-ratio: 4/3;
+        }
+
+        /* Hiasan Sudut Video */
+        .video-wrapper::before, .video-wrapper::after {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border: 3px solid #00f2ff;
+            transition: 0.3s;
+            z-index: 5;
+            pointer-events: none;
+        }
+        .video-wrapper::before { top: 0; left: 0; border-right: none; border-bottom: none; border-radius: 10px 0 0 0; }
+        .video-wrapper::after { bottom: 0; right: 0; border-left: none; border-top: none; border-radius: 0 0 10px 0; }
+
+        video, #output_canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transform: scaleX(-1);
+            object-fit: cover;
+        }
+
+        /* HUD Overlay */
+        .hud-overlay {
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            right: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            pointer-events: none;
+            z-index: 6;
+        }
+
+        .count-box {
+            background: rgba(0, 20, 40, 0.7);
+            backdrop-filter: blur(10px);
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 1px solid rgba(0, 242, 255, 0.3);
+            min-width: 80px;
+        }
+
+        .label-text {
+            font-size: 0.8rem;
+            color: #00f2ff;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .number-big {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3rem;
+            font-weight: bold;
+            color: white;
+            line-height: 1;
+            text-shadow: 0 0 10px #00f2ff;
+        }
+
+        .text-result {
+            font-size: 1.5rem;
+            color: white;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        /* Controls */
+        .controls {
+            margin-top: 20px;
+            z-index: 5;
+        }
+
+        #cam-btn {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #ff0055;
+            color: #ff0055;
+            padding: 12px 35px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-family: 'Orbitron', sans-serif;
+            cursor: pointer;
+            transition: 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        #cam-btn:hover {
+            background: #ff0055;
+            color: white;
+            box-shadow: 0 0 20px rgba(255, 0, 85, 0.5);
+        }
+
+        #cam-btn.active {
+            border-color: #00ff88;
+            color: #00ff88;
+        }
+        #cam-btn.active:hover {
+            background: #00ff88;
+            color: black;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+        }
+
+        /* Footer */
+        footer {
+            width: 100%;
+            padding: 15px 0;
+            text-align: center;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.5);
+            z-index: 2;
+            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+        }
+
+        /* Loading */
+        #loading {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            color: #00f2ff;
+            text-align: center;
+            z-index: 10;
+            font-family: 'Orbitron';
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+    </style>
+</head>
+<body>
+
+    <!-- KANVAS BACKGROUND -->
+    <canvas id="bg-canvas"></canvas>
+
+    <header>
+        <h1>AI HAND TRACKER</h1>
+        <p class="subtitle">INTERACTIVE SYSTEM</p>
+    </header>
+
+    <div class="container">
+        <div class="video-wrapper">
+            <div id="loading">INITIALIZING SYSTEM...</div>
+            <video id="input_video"></video>
+            <canvas id="output_canvas"></canvas>
+            
+            <div class="hud-overlay" id="hud">
+                <div class="count-box">
+                    <div class="label-text">COUNT</div>
+                    <div class="number-big" id="display-number">-</div>
+                </div>
+                <div class="count-box" style="text-align: right;">
+                    <div class="label-text">STATUS</div>
+                    <div class="text-result" id="display-text">READY</div>
+                </div>
+            </div>
+            
+            <div id="camera-off-msg" style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:#555; font-family:'Orbitron'; font-size: 1.5rem;">SYSTEM OFFLINE</div>
+        </div>
+
+        <div class="controls">
+            <button id="cam-btn" onclick="toggleCamera()">DEACTIVATE CAMERA</button>
+        </div>
+    </div>
+
+    <footer>
+        &copy; Copyright Riyan 2025 | Powered by MediaPipe AI
+    </footer>
+
+    <script>
+        // ==========================================
+        // BAGIAN 1: BACKGROUND PARTIKEL INTERAKTIF
+        // ==========================================
+        const bgCanvas = document.getElementById('bg-canvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        let particlesArray;
+
+        bgCanvas.width = window.innerWidth;
+        bgCanvas.height = window.innerHeight;
+
+        let mouse = { x: null, y: null, radius: (bgCanvas.height/80) * (bgCanvas.width/80) }
+
+        window.addEventListener('mousemove', (e) => { mouse.x = e.x; mouse.y = e.y; });
+        window.addEventListener('touchstart', (e) => { mouse.x = e.touches[0].clientX; mouse.y = e.touches[0].clientY; });
+        window.addEventListener('touchmove', (e) => { mouse.x = e.touches[0].clientX; mouse.y = e.touches[0].clientY; });
+        window.addEventListener('touchend', () => { mouse.x = null; mouse.y = null; });
+        window.addEventListener('resize', () => {
+            bgCanvas.width = window.innerWidth;
+            bgCanvas.height = window.innerHeight;
+            mouse.radius = (bgCanvas.height/80) * (bgCanvas.width/80);
+            initParticles();
+        });
+
+        class Particle {
+            constructor(x, y, dirX, dirY, size, color) {
+                this.x = x; this.y = y;
+                this.dirX = dirX; this.dirY = dirY;
+                this.size = size; this.color = color;
+            }
+            draw() {
+                bgCtx.beginPath();
+                bgCtx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
+                bgCtx.fillStyle = this.color;
+                bgCtx.fill();
+            }
+            update() {
+                if (this.x > bgCanvas.width || this.x < 0) this.dirX = -this.dirX;
+                if (this.y > bgCanvas.height || this.y < 0) this.dirY = -this.dirY;
+
+                // Interaksi Mouse
+                let dx = mouse.x - this.x;
+                let dy = mouse.y - this.y;
+                let distance = Math.sqrt(dx*dx + dy*dy);
+                if (distance < mouse.radius + this.size) {
+                    if (mouse.x < this.x && this.x < bgCanvas.width - this.size * 10) this.x += 3;
+                    if (mouse.x > this.x && this.x > this.size * 10) this.x -= 3;
+                    if (mouse.y < this.y && this.y < bgCanvas.height - this.size * 10) this.y += 3;
+                    if (mouse.y > this.y && this.y > this.size * 10) this.y -= 3;
+                }
+                this.x += this.dirX;
+                this.y += this.dirY;
+                this.draw();
+            }
+        }
+
+        function initParticles() {
+            particlesArray = [];
+            // Jumlah partikel responsif terhadap ukuran layar
+            let numberOfParticles = (bgCanvas.height * bgCanvas.width) / 10000;
+            for (let i = 0; i < numberOfParticles; i++) {
+                let size = (Math.random() * 2) + 1;
+                let x = (Math.random() * ((innerWidth - size * 2) - (size * 2)) + size * 2);
+                let y = (Math.random() * ((innerHeight - size * 2) - (size * 2)) + size * 2);
+                let dirX = (Math.random() * 1) - 0.5; // Kecepatan lambat
+                let dirY = (Math.random() * 1) - 0.5;
+                let color = '#00f2ff';
+                particlesArray.push(new Particle(x, y, dirX, dirY, size, color));
+            }
+        }
+
+        function connectParticles() {
+            let opacityValue = 1;
+            for (let a = 0; a < particlesArray.length; a++) {
+                for (let b = a; b < particlesArray.length; b++) {
+                    let distance = ((particlesArray[a].x - particlesArray[b].x) * (particlesArray[a].x - particlesArray[b].x)) + 
+                                   ((particlesArray[a].y - particlesArray[b].y) * (particlesArray[a].y - particlesArray[b].y));
+                    if (distance < (bgCanvas.width/7) * (bgCanvas.height/7)) {
+                        opacityValue = 1 - (distance/20000);
+                        bgCtx.strokeStyle = 'rgba(0, 242, 255,' + opacityValue + ')';
+                        bgCtx.lineWidth = 1;
+                        bgCtx.beginPath();
+                        bgCtx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                        bgCtx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                        bgCtx.stroke();
+                    }
+                }
+            }
+        }
+
+        function animateParticles() {
+            requestAnimationFrame(animateParticles);
+            bgCtx.clearRect(0, 0, innerWidth, innerHeight);
+            for (let i = 0; i < particlesArray.length; i++) {
+                particlesArray[i].update();
+            }
+            connectParticles();
+        }
+
+        initParticles();
+        animateParticles();
+
+        // ==========================================
+        // BAGIAN 2: AI FINGER COUNTER LOGIC
+        // ==========================================
+        const videoElement = document.getElementById('input_video');
+        const canvasElement = document.getElementById('output_canvas');
+        const canvasCtx = canvasElement.getContext('2d');
+        const displayNumber = document.getElementById('display-number');
+        const displayText = document.getElementById('display-text');
+        const loadingScreen = document.getElementById('loading');
+        const camBtn = document.getElementById('cam-btn');
+        const camOffMsg = document.getElementById('camera-off-msg');
+        const hud = document.getElementById('hud');
+
+        let isCameraOn = true;
+        let rawFingerCount = 0;
+        let stableFingerCount = -1;
+        let frameConfidence = 0;
+        const CONFIDENCE_THRESHOLD = 10;
+
+        const synth = window.speechSynthesis;
+        function speak(text) {
+            if (synth.speaking) synth.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'id-ID';
+            utterance.rate = 1.1;
+            synth.speak(utterance);
+        }
+
+        const numberToText = { 0: "Nol", 1: "Satu", 2: "Dua", 3: "Tiga", 4: "Empat", 5: "Lima" };
+
+        function onResults(results) {
+            loadingScreen.style.display = 'none';
+            canvasElement.width = videoElement.videoWidth;
+            canvasElement.height = videoElement.videoHeight;
+
+            canvasCtx.save();
+            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+            canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                const landmarks = results.multiHandLandmarks[0];
+                const handedness = results.multiHandedness[0].label; 
+
+                // Gambar kerangka tangan Cyber
+                drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, {color: '#00f2ff', lineWidth: 2});
+                drawLandmarks(canvasCtx, landmarks, {color: '#ffffff', lineWidth: 1, radius: 3});
+
+                // Hitung Jari
+                let currentFrameCount = 0;
+                
+                // Jempol
+                if (handedness === 'Right') { 
+                    if (landmarks[4].x < landmarks[3].x) currentFrameCount++;
+                } else {
+                    if (landmarks[4].x > landmarks[3].x) currentFrameCount++;
+                }
+
+                // 4 Jari Lain
+                const fingerTips = [8, 12, 16, 20];
+                const fingerPips = [6, 10, 14, 18]; 
+                for (let i = 0; i < fingerTips.length; i++) {
+                    if (landmarks[fingerTips[i]].y < landmarks[fingerPips[i]].y) currentFrameCount++;
+                }
+
+                // Stabilisasi
+                if (currentFrameCount === rawFingerCount) {
+                    frameConfidence++;
+                } else {
+                    rawFingerCount = currentFrameCount;
+                    frameConfidence = 0;
+                }
+
+                if (frameConfidence > CONFIDENCE_THRESHOLD) {
+                    if (stableFingerCount !== rawFingerCount) {
+                        stableFingerCount = rawFingerCount;
+                        displayNumber.innerText = stableFingerCount;
+                        displayText.innerText = numberToText[stableFingerCount];
+                        speak(numberToText[stableFingerCount]);
+                        
+                        // Efek Pop pada Angka
+                        displayNumber.style.transition = "0.1s";
+                        displayNumber.style.textShadow = "0 0 30px #00ff88";
+                        displayNumber.style.color = "#00ff88";
+                        setTimeout(() => {
+                            displayNumber.style.textShadow = "0 0 10px #00f2ff";
+                            displayNumber.style.color = "white";
+                        }, 200);
+                    }
+                }
+
+            } else {
+                frameConfidence = 0;
+                if (stableFingerCount !== -1) {
+                    stableFingerCount = -1;
+                    displayNumber.innerText = "-";
+                    displayText.innerText = "READY";
+                }
+            }
+            canvasCtx.restore();
+        }
+
+        const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
+        hands.setOptions({
+            maxNumHands: 1,
+            modelComplexity: 1,
+            minDetectionConfidence: 0.6,
+            minTrackingConfidence: 0.6
+        });
+        hands.onResults(onResults);
+
+        const camera = new Camera(videoElement, {
+            onFrame: async () => await hands.send({image: videoElement}),
+            width: 640,
+            height: 480
+        });
+
+        camera.start();
+
+        function toggleCamera() {
+            if (isCameraOn) {
+                camera.stop();
+                canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+                canvasCtx.fillStyle = "#000";
+                canvasCtx.fillRect(0, 0, canvasElement.width, canvasElement.height);
+                
+                camBtn.innerText = "ACTIVATE CAMERA";
+                camBtn.classList.add('active');
+                camOffMsg.style.display = "block";
+                hud.style.opacity = "0.2";
+                isCameraOn = false;
+            } else {
+                camOffMsg.style.display = "none";
+                loadingScreen.style.display = "block";
+                camera.start().then(() => loadingScreen.style.display = "none");
+
+                camBtn.innerText = "DEACTIVATE CAMERA";
+                camBtn.classList.remove('active');
+                hud.style.opacity = "1";
+                isCameraOn = true;
+            }
+        }
+    </script>
+</body>
+</html>
