@@ -20,15 +20,18 @@
 
         body {
             margin: 0;
-            background-color: #050505;
+            background-color: #020205;
+            background-image: radial-gradient(circle at 50% 50%, #11111f 0%, #020205 100%);
             font-family: 'Rajdhani', sans-serif;
             color: white;
-            height: 100dvh; /* Dynamic Viewport Height */
+            min-height: 100dvh; 
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: space-between; 
-            overflow: hidden;
+            justify-content: flex-start;
+            overflow-x: hidden;
+            overflow-y: auto;
+            padding-bottom: 20px;
         }
 
         /* --- BACKGROUND PARTIKEL --- */
@@ -42,28 +45,63 @@
         /* --- HEADER --- */
         header {
             text-align: center;
-            padding: 10px 0;
+            padding: 15px 0;
             z-index: 2;
             flex-shrink: 0;
+            margin-bottom: 10px;
         }
+
+        .glitch-wrapper { position: relative; display: inline-block; }
 
         h1 {
             font-family: 'Orbitron', sans-serif;
-            font-size: 1.5rem;
+            font-size: 1.8rem;
             margin: 0;
-            letter-spacing: 2px;
-            background: linear-gradient(90deg, #00f2ff, #00ff88);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 0 5px rgba(0, 242, 255, 0.5));
+            letter-spacing: 3px;
+            color: white;
+            position: relative;
+        }
+
+        h1::before, h1::after {
+            content: attr(data-text);
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #020205;
+        }
+
+        h1::before {
+            left: 2px; text-shadow: -1px 0 #ff00c1;
+            clip: rect(44px, 450px, 56px, 0);
+            animation: glitch-anim 5s infinite linear alternate-reverse;
+        }
+        h1::after {
+            left: -2px; text-shadow: -1px 0 #00fff9;
+            clip: rect(44px, 450px, 56px, 0);
+            animation: glitch-anim2 1s infinite linear alternate-reverse;
+        }
+
+        @keyframes glitch-anim {
+            0% { clip: rect(30px, 9999px, 10px, 0); }
+            20% { clip: rect(80px, 9999px, 90px, 0); }
+            40% { clip: rect(10px, 9999px, 50px, 0); }
+            60% { clip: rect(40px, 9999px, 20px, 0); }
+            80% { clip: rect(70px, 9999px, 30px, 0); }
+            100% { clip: rect(20px, 9999px, 60px, 0); }
+        }
+        @keyframes glitch-anim2 {
+            0% { clip: rect(60px, 9999px, 70px, 0); }
+            20% { clip: rect(10px, 9999px, 30px, 0); }
+            40% { clip: rect(50px, 9999px, 20px, 0); }
+            60% { clip: rect(20px, 9999px, 80px, 0); }
+            80% { clip: rect(90px, 9999px, 10px, 0); }
+            100% { clip: rect(30px, 9999px, 40px, 0); }
         }
 
         p.subtitle {
-            font-size: 0.8rem;
-            color: #aaa;
-            margin: 2px 0 0 0;
-            letter-spacing: 1px;
+            font-size: 0.9rem; color: #00f2ff; margin: 4px 0 0 0;
+            letter-spacing: 4px; text-transform: uppercase;
+            animation: blink 2s infinite;
         }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 
         /* --- CONTAINER UTAMA --- */
         .container {
@@ -74,36 +112,24 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
             flex-grow: 1;
-            max-height: 80vh;
+            max-width: 600px;
         }
 
         /* --- VIDEO WRAPPER --- */
         .video-wrapper {
             position: relative;
             width: 100%;
-            max-width: 500px;
-            aspect-ratio: 3/4; /* Rasio Potret Mobile */
-            max-height: 55vh;
+            aspect-ratio: 4/3; 
+            max-height: 50vh;
             border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 0 20px rgba(0, 242, 255, 0.15);
-            border: 1px solid rgba(0, 242, 255, 0.3);
-            background: rgba(0, 0, 0, 0.8);
+            box-shadow: 0 0 30px rgba(0, 242, 255, 0.15);
+            border: 2px solid rgba(0, 242, 255, 0.5);
+            background: rgba(0, 5, 10, 0.9);
+            margin-bottom: 20px;
         }
-
-        @media (min-width: 600px) {
-            .video-wrapper { aspect-ratio: 4/3; max-height: 60vh; }
-            h1 { font-size: 2rem; }
-        }
-
-        .video-wrapper::before, .video-wrapper::after {
-            content: ''; position: absolute; width: 20px; height: 20px;
-            border: 2px solid #00f2ff; z-index: 5; pointer-events: none;
-        }
-        .video-wrapper::before { top: 0; left: 0; border-right: 0; border-bottom: 0; }
-        .video-wrapper::after { bottom: 0; right: 0; border-left: 0; border-top: 0; }
 
         video, #output_canvas {
             position: absolute; top: 0; left: 0;
@@ -112,83 +138,76 @@
             object-fit: cover;
         }
 
-        /* --- HUD (DISPLAY ANGKA - FIXED WIDTH) --- */
-        .hud-overlay {
-            position: absolute;
-            bottom: 10px; left: 10px; right: 10px;
-            display: flex; justify-content: space-between; align-items: flex-end;
-            pointer-events: none; z-index: 6;
+        /* --- PANEL INFO (EXTERNAL) --- */
+        .info-panel {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            gap: 15px;
+            margin-bottom: 20px;
         }
 
         .count-box {
-            background: rgba(0, 10, 20, 0.7);
-            backdrop-filter: blur(4px);
-            padding: 8px 0; /* Padding atas bawah saja */
-            border-radius: 8px;
-            border: 1px solid rgba(0, 242, 255, 0.2);
-            /* --- MODIFIKASI FIXED WIDTH --- */
-            width: 110px; /* Lebar Tetap */
+            background: rgba(0, 20, 40, 0.85);
+            backdrop-filter: blur(10px);
+            padding: 15px 0;
+            border-radius: 12px;
+            border: 1px solid rgba(0, 242, 255, 0.4);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+            flex: 1;
             display: flex;
             flex-direction: column;
-            align-items: center; /* Teks Rata Tengah */
+            align-items: center;
             justify-content: center;
+            transition: transform 0.1s;
+        }
+        
+        /* Efek aktif saat angka berubah */
+        .count-box.pulse-active {
+            transform: scale(1.05);
+            border-color: #00ff88;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
         }
 
-        .label-text { font-size: 0.7rem; color: #00f2ff; margin-bottom: 2px; }
-        
-        .number-big { 
-            font-family: 'Orbitron'; 
-            font-size: 2.5rem; 
-            font-weight: bold; 
-            line-height: 1; 
-            text-shadow: 0 0 10px #00f2ff; 
-            /* Memastikan angka tetap di tengah */
-            text-align: center;
-            width: 100%;
-        }
-        
-        .text-result { 
-            font-size: 1.2rem; 
-            font-weight: bold; 
-            text-transform: uppercase;
-            /* Memastikan teks tetap di tengah */
-            text-align: center;
-            width: 100%;
-        }
+        .label-text { font-size: 0.8rem; color: #00f2ff; margin-bottom: 5px; letter-spacing: 2px; }
+        .number-big { font-family: 'Orbitron'; font-size: 3rem; font-weight: bold; line-height: 1; text-shadow: 0 0 15px #00f2ff; color: white; }
+        .text-result { font-family: 'Orbitron'; font-size: 1.4rem; font-weight: bold; text-transform: uppercase; color: white; letter-spacing: 1px; }
 
         /* --- CONTROLS --- */
         .controls {
-            margin-top: 15px;
             z-index: 5;
-            flex-shrink: 0;
+            margin-bottom: 20px;
         }
 
         #cam-btn {
-            background: rgba(0, 0, 0, 0.6);
+            background: rgba(0, 0, 0, 0.7);
             border: 1px solid #ff0055;
             color: #ff0055;
-            padding: 10px 25px;
-            border-radius: 50px;
+            padding: 12px 40px;
+            border-radius: 4px;
             font-weight: bold;
             font-family: 'Orbitron';
             cursor: pointer;
-            font-size: 0.8rem;
-            letter-spacing: 1px;
+            font-size: 1rem;
+            letter-spacing: 2px;
             transition: 0.3s;
+            text-transform: uppercase;
+            box-shadow: 0 0 10px rgba(255, 0, 85, 0.2);
         }
-        #cam-btn.active { border-color: #00ff88; color: #00ff88; }
-        #cam-btn:active { transform: scale(0.95); background: rgba(255,255,255,0.1); }
+        #cam-btn:hover { background: rgba(255, 0, 85, 0.2); box-shadow: 0 0 20px rgba(255, 0, 85, 0.4); }
+        #cam-btn.active { border-color: #00ff88; color: #00ff88; box-shadow: 0 0 10px rgba(0, 255, 136, 0.2); }
+        #cam-btn.active:hover { background: rgba(0, 255, 136, 0.2); box-shadow: 0 0 20px rgba(0, 255, 136, 0.4); }
 
         /* --- FOOTER --- */
         footer {
             width: 100%;
-            padding: 10px 0;
+            padding: 15px 0;
             text-align: center;
-            font-size: 0.75rem;
-            color: rgba(255, 255, 255, 0.4);
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.5);
             z-index: 2;
-            background: linear-gradient(to top, rgba(0,0,0,1), transparent);
-            flex-shrink: 0;
+            letter-spacing: 1px;
+            margin-top: auto;
         }
 
         /* --- LOADING --- */
@@ -196,7 +215,7 @@
             position: absolute; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
             color: #00f2ff; font-family: 'Orbitron'; font-size: 0.9rem;
-            z-index: 10; text-align: center;
+            z-index: 10; text-align: center; text-shadow: 0 0 10px #00f2ff;
         }
         .pulse { animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
@@ -210,8 +229,10 @@
 
     <!-- LAYER 2: KONTEN UTAMA -->
     <header>
-        <h1>AI HAND TRACKER</h1>
-        <p class="subtitle">MOBILE EDITION</p>
+        <div class="glitch-wrapper">
+            <h1 data-text="AI HAND TRACKER">AI HAND TRACKER</h1>
+        </div>
+        <p class="subtitle">CYBER EDITION</p>
     </header>
 
     <div class="container">
@@ -219,32 +240,31 @@
             <div id="loading" class="pulse">INITIALIZING SYSTEM...</div>
             <video id="input_video" playsinline></video>
             <canvas id="output_canvas"></canvas>
-            
-            <div class="hud-overlay" id="hud">
-                <div class="count-box">
-                    <div class="label-text">JARI</div>
-                    <div class="number-big" id="display-number">-</div>
-                </div>
-                <div class="count-box">
-                    <div class="label-text">STATUS</div>
-                    <div class="text-result" id="display-text">SIAP</div>
-                </div>
+            <div id="camera-off-msg" style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:#555; font-family:'Orbitron'; font-size: 1.2rem; white-space: nowrap;">SYSTEM OFFLINE</div>
+        </div>
+
+        <div class="info-panel" id="hud">
+            <div class="count-box" id="box-num">
+                <div class="label-text">TOTAL JARI</div>
+                <div class="number-big" id="display-number">-</div>
             </div>
-            
-            <div id="camera-off-msg" style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:#555; font-family:'Orbitron'; font-size: 1rem; white-space: nowrap;">SYSTEM OFFLINE</div>
+            <div class="count-box" id="box-text">
+                <div class="label-text">TERBILANG</div>
+                <div class="text-result" id="display-text">READY</div>
+            </div>
         </div>
 
         <div class="controls">
-            <button id="cam-btn" onclick="toggleCamera()">MATIKAN KAMERA</button>
+            <button id="cam-btn" onclick="toggleCamera()">DEACTIVATE CAMERA</button>
         </div>
     </div>
 
     <footer>
-        &copy; Copyright Riyan 2025 | Powered by MediaPipe
+        &copy; Copyright Riyan 2025 | Neural Interface V7.0
     </footer>
 
     <script>
-        // --- 1. BACKGROUND PARTICLES (INTERAKTIF RESTORED) ---
+        // --- 1. BACKGROUND PARTICLES ---
         const bgCanvas = document.getElementById('bg-canvas');
         const bgCtx = bgCanvas.getContext('2d');
         let particlesArray;
@@ -256,63 +276,44 @@
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
 
-        let mouse = { x: null, y: null, radius: 120 } // Radius interaksi
-
+        let mouse = { x: null, y: null, radius: 120 }
         window.addEventListener('mousemove', (e) => { mouse.x = e.x; mouse.y = e.y; });
-        window.addEventListener('touchmove', (e) => { 
-            mouse.x = e.touches[0].clientX; mouse.y = e.touches[0].clientY; 
-        });
+        window.addEventListener('touchmove', (e) => { mouse.x = e.touches[0].clientX; mouse.y = e.touches[0].clientY; });
         window.addEventListener('touchend', () => { mouse.x = null; mouse.y = null; });
 
         class Particle {
             constructor(x, y, dirX, dirY, size, color) {
-                this.x = x; this.y = y;
-                this.dirX = dirX; this.dirY = dirY;
-                this.size = size; this.color = color;
+                this.x = x; this.y = y; this.dirX = dirX; this.dirY = dirY; this.size = size; this.color = color;
             }
             draw() {
-                bgCtx.beginPath();
-                bgCtx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
-                bgCtx.fillStyle = this.color;
-                bgCtx.fill();
+                bgCtx.beginPath(); bgCtx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
+                bgCtx.fillStyle = this.color; bgCtx.shadowBlur = 5; bgCtx.shadowColor = this.color;
+                bgCtx.fill(); bgCtx.shadowBlur = 0; 
             }
             update() {
-                // Bounce edges
                 if (this.x > bgCanvas.width || this.x < 0) this.dirX = -this.dirX;
                 if (this.y > bgCanvas.height || this.y < 0) this.dirY = -this.dirY;
-                
-                // --- INTERAKSI MOUSE/TOUCH (DIKEMBALIKAN) ---
-                let dx = mouse.x - this.x;
-                let dy = mouse.y - this.y;
-                let distance = Math.sqrt(dx*dx + dy*dy);
-                
+                let dx = mouse.x - this.x; let dy = mouse.y - this.y; let distance = Math.sqrt(dx*dx + dy*dy);
                 if (distance < mouse.radius + this.size) {
                     if (mouse.x < this.x && this.x < bgCanvas.width - 10) this.x += 3;
                     if (mouse.x > this.x && this.x > 10) this.x -= 3;
                     if (mouse.y < this.y && this.y < bgCanvas.height - 10) this.y += 3;
                     if (mouse.y > this.y && this.y > 10) this.y -= 3;
                 }
-                
-                this.x += this.dirX;
-                this.y += this.dirY;
-                this.draw();
+                this.x += this.dirX; this.y += this.dirY; this.draw();
             }
         }
 
         function initParticles() {
             particlesArray = [];
-            let numberOfParticles = (bgCanvas.height * bgCanvas.width) / 11000;
+            let numberOfParticles = (bgCanvas.height * bgCanvas.width) / 12000;
             for (let i = 0; i < numberOfParticles; i++) {
                 let size = (Math.random() * 2) + 1;
-                let x = Math.random() * innerWidth;
-                let y = Math.random() * innerHeight;
-                let dirX = (Math.random() * 0.4) - 0.2;
-                let dirY = (Math.random() * 0.4) - 0.2;
+                let x = Math.random() * innerWidth; let y = Math.random() * innerHeight;
+                let dirX = (Math.random() * 0.4) - 0.2; let dirY = (Math.random() * 0.4) - 0.2;
                 particlesArray.push(new Particle(x, y, dirX, dirY, size, '#00f2ff'));
             }
         }
-
-        // --- GARIS PENGHUBUNG (DIKEMBALIKAN) ---
         function connectParticles() {
             let opacityValue = 1;
             for (let a = 0; a < particlesArray.length; a++) {
@@ -322,8 +323,7 @@
                     if (distance < (bgCanvas.width/7) * (bgCanvas.height/7)) {
                         opacityValue = 1 - (distance/20000);
                         bgCtx.strokeStyle = 'rgba(0, 242, 255,' + opacityValue + ')';
-                        bgCtx.lineWidth = 1;
-                        bgCtx.beginPath();
+                        bgCtx.lineWidth = 1; bgCtx.beginPath();
                         bgCtx.moveTo(particlesArray[a].x, particlesArray[a].y);
                         bgCtx.lineTo(particlesArray[b].x, particlesArray[b].y);
                         bgCtx.stroke();
@@ -331,19 +331,15 @@
                 }
             }
         }
-
         function animateParticles() {
             requestAnimationFrame(animateParticles);
             bgCtx.clearRect(0, 0, innerWidth, innerHeight);
-            for (let i = 0; i < particlesArray.length; i++) {
-                particlesArray[i].update();
-            }
-            connectParticles(); // Garis jaring aktif kembali
+            for (let i = 0; i < particlesArray.length; i++) { particlesArray[i].update(); }
+            connectParticles();
         }
-        initParticles();
-        animateParticles();
+        initParticles(); animateParticles();
 
-        // --- 2. AI HAND TRACKING (LOGIKA TETAP SAMA) ---
+        // --- 2. AI HAND TRACKING (HIGH PRECISION & LOW DELAY) ---
         const videoElement = document.getElementById('input_video');
         const canvasElement = document.getElementById('output_canvas');
         const canvasCtx = canvasElement.getContext('2d');
@@ -352,24 +348,33 @@
         const loadingScreen = document.getElementById('loading');
         const camBtn = document.getElementById('cam-btn');
         const camOffMsg = document.getElementById('camera-off-msg');
-        const hud = document.getElementById('hud');
+        const boxNum = document.getElementById('box-num');
+        const boxText = document.getElementById('box-text');
 
         let isCameraOn = true;
-        let rawFingerCount = 0;
-        let stableFingerCount = -1;
+        
+        // VARIABEL STABILISASI BARU
+        let rawPostureSignature = ""; // Menyimpan pola jari (misal: "10100-00000")
+        let stablePostureSignature = "";
         let frameConfidence = 0;
-        const CONFIDENCE_THRESHOLD = 8; 
+        
+        // SPEED OPTIMIZATION:
+        // Threshold hanya 3 (sangat cepat, sekitar 100ms)
+        const CONFIDENCE_THRESHOLD = 3; 
 
         const synth = window.speechSynthesis;
         function speak(text) {
-            if (synth.speaking) synth.cancel();
+            if (synth.speaking) synth.cancel(); // Potong suara lama agar tidak delay
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'id-ID';
-            utterance.rate = 1.2;
+            utterance.rate = 1.3; 
             synth.speak(utterance);
         }
 
-        const numberToText = { 0: "Nol", 1: "Satu", 2: "Dua", 3: "Tiga", 4: "Empat", 5: "Lima" };
+        const numberToText = { 
+            0: "Nol", 1: "Satu", 2: "Dua", 3: "Tiga", 4: "Empat", 5: "Lima",
+            6: "Enam", 7: "Tujuh", 8: "Delapan", 9: "Sembilan", 10: "Sepuluh"
+        };
 
         function onResults(results) {
             loadingScreen.style.display = 'none';
@@ -380,62 +385,99 @@
             canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
             canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
 
+            let currentFrameTotal = 0;
+            let currentFramePosture = []; // Array untuk menyimpan status tiap jari (0 atau 1)
+
             if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-                const landmarks = results.multiHandLandmarks[0];
-                const handedness = results.multiHandedness[0].label; 
+                // Loop untuk setiap tangan
+                for (const [index, landmarks] of results.multiHandLandmarks.entries()) {
+                    const handedness = results.multiHandedness[index].label; 
+                    drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, {color: '#00f2ff', lineWidth: 2});
+                    drawLandmarks(canvasCtx, landmarks, {color: '#ffffff', lineWidth: 1, radius: 4});
 
-                drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, {color: '#00f2ff', lineWidth: 2});
-                drawLandmarks(canvasCtx, landmarks, {color: '#ffffff', lineWidth: 1, radius: 3});
+                    // Logika Jari per Tangan
+                    let fingersOnHand = 0;
+                    
+                    // Jempol
+                    let thumbOpen = false;
+                    if (handedness === 'Right') { 
+                        if (landmarks[4].x < landmarks[3].x) thumbOpen = true;
+                    } else {
+                        if (landmarks[4].x > landmarks[3].x) thumbOpen = true;
+                    }
+                    if (thumbOpen) fingersOnHand++;
+                    currentFramePosture.push(thumbOpen ? 1 : 0); // Simpan status jempol
 
-                let currentFrameCount = 0;
-                
-                if (handedness === 'Right') { 
-                    if (landmarks[4].x < landmarks[3].x) currentFrameCount++;
-                } else {
-                    if (landmarks[4].x > landmarks[3].x) currentFrameCount++;
+                    // 4 Jari Lain
+                    const fingerTips = [8, 12, 16, 20];
+                    const fingerPips = [6, 10, 14, 18]; 
+                    for (let i = 0; i < fingerTips.length; i++) {
+                        let fingerOpen = false;
+                        if (landmarks[fingerTips[i]].y < landmarks[fingerPips[i]].y) fingerOpen = true;
+                        
+                        if (fingerOpen) fingersOnHand++;
+                        currentFramePosture.push(fingerOpen ? 1 : 0); // Simpan status jari lain
+                    }
+                    currentFrameTotal += fingersOnHand;
                 }
 
-                const fingerTips = [8, 12, 16, 20];
-                const fingerPips = [6, 10, 14, 18]; 
-                for (let i = 0; i < fingerTips.length; i++) {
-                    if (landmarks[fingerTips[i]].y < landmarks[fingerPips[i]].y) currentFrameCount++;
-                }
+                // Membuat "Signature" Unik dari Postur saat ini
+                // Contoh Signature: "10110-00000" (Jempol, Tengah, Manis tegak)
+                // Ini membedakan "2" (Telunjuk+Tengah) dengan "2" (Jempol+Kelingking)
+                const currentSignatureString = currentFramePosture.join("");
 
-                if (currentFrameCount === rawFingerCount) {
+                // STABILISASI BERDASARKAN POSTUR, BUKAN HANYA ANGKA
+                if (currentSignatureString === rawPostureSignature) {
                     frameConfidence++;
                 } else {
-                    rawFingerCount = currentFrameCount;
-                    frameConfidence = 0;
+                    rawPostureSignature = currentSignatureString;
+                    frameConfidence = 0; // Reset instan jika postur berubah sedikitpun
                 }
 
                 if (frameConfidence > CONFIDENCE_THRESHOLD) {
-                    if (stableFingerCount !== rawFingerCount) {
-                        stableFingerCount = rawFingerCount;
-                        displayNumber.innerText = stableFingerCount;
-                        displayText.innerText = numberToText[stableFingerCount];
-                        speak(numberToText[stableFingerCount]);
+                    // Jika postur stabil DAN (berbeda dari postur terakhir yg diumumkan)
+                    if (stablePostureSignature !== rawPostureSignature) {
+                        stablePostureSignature = rawPostureSignature;
+                        
+                        // Update UI
+                        displayNumber.innerText = currentFrameTotal;
+                        let text = numberToText[currentFrameTotal] || currentFrameTotal.toString();
+                        displayText.innerText = text;
+                        speak(text);
+                        
+                        // Efek Visual
+                        boxNum.classList.remove('pulse-active');
+                        void boxNum.offsetWidth; // Trigger reflow
+                        boxNum.classList.add('pulse-active');
                         
                         displayNumber.style.color = "#00ff88";
-                        setTimeout(() => displayNumber.style.color = "white", 200);
+                        setTimeout(() => {
+                            displayNumber.style.color = "white";
+                            boxNum.classList.remove('pulse-active');
+                        }, 200);
                     }
                 }
             } else {
+                // Jika tangan hilang, RESET stabilisasi
                 frameConfidence = 0;
-                if (stableFingerCount !== -1) {
-                    stableFingerCount = -1;
+                rawPostureSignature = "";
+                // Agar jika tangan masuk lagi dengan angka sama, dia tetap mendeteksi ulang
+                if (stablePostureSignature !== "") {
+                    stablePostureSignature = "";
                     displayNumber.innerText = "-";
-                    displayText.innerText = "SIAP";
+                    displayText.innerText = "READY";
                 }
             }
             canvasCtx.restore();
         }
 
         const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
+        
         hands.setOptions({
-            maxNumHands: 1,
-            modelComplexity: 0, 
-            minDetectionConfidence: 0.5,
-            minTrackingConfidence: 0.5
+            maxNumHands: 2, 
+            modelComplexity: 1, // Kualitas Bagus
+            minDetectionConfidence: 0.6, // Lebih strict agar tidak glitch
+            minTrackingConfidence: 0.6
         });
         hands.onResults(onResults);
 
@@ -453,18 +495,16 @@
                 canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
                 canvasCtx.fillStyle = "#000";
                 canvasCtx.fillRect(0, 0, canvasElement.width, canvasElement.height);
-                camBtn.innerText = "HIDUPKAN KAMERA";
+                camBtn.innerText = "ACTIVATE CAMERA";
                 camBtn.classList.add('active');
                 camOffMsg.style.display = "block";
-                hud.style.opacity = "0.2";
                 isCameraOn = false;
             } else {
                 camOffMsg.style.display = "none";
                 loadingScreen.style.display = "block";
                 camera.start().then(() => loadingScreen.style.display = "none");
-                camBtn.innerText = "MATIKAN KAMERA";
+                camBtn.innerText = "DEACTIVATE CAMERA";
                 camBtn.classList.remove('active');
-                hud.style.opacity = "1";
                 isCameraOn = true;
             }
         }
