@@ -162,7 +162,6 @@
             transition: transform 0.1s;
         }
         
-        /* Efek aktif saat angka berubah */
         .count-box.pulse-active {
             transform: scale(1.05);
             border-color: #00ff88;
@@ -260,7 +259,7 @@
     </div>
 
     <footer>
-        &copy; Copyright Riyan 2025 | Neural Interface V7.0
+        &copy; Copyright Riyan 2025 | Neural Interface V8.0
     </footer>
 
     <script>
@@ -339,7 +338,7 @@
         }
         initParticles(); animateParticles();
 
-        // --- 2. AI HAND TRACKING (HIGH PRECISION & LOW DELAY) ---
+        // --- 2. AI HAND TRACKING (TUNED) ---
         const videoElement = document.getElementById('input_video');
         const canvasElement = document.getElementById('output_canvas');
         const canvasCtx = canvasElement.getContext('2d');
@@ -349,22 +348,18 @@
         const camBtn = document.getElementById('cam-btn');
         const camOffMsg = document.getElementById('camera-off-msg');
         const boxNum = document.getElementById('box-num');
-        const boxText = document.getElementById('box-text');
 
         let isCameraOn = true;
-        
-        // VARIABEL STABILISASI BARU
-        let rawPostureSignature = ""; // Menyimpan pola jari (misal: "10100-00000")
+        let rawPostureSignature = ""; 
         let stablePostureSignature = "";
         let frameConfidence = 0;
         
-        // SPEED OPTIMIZATION:
-        // Threshold hanya 3 (sangat cepat, sekitar 100ms)
-        const CONFIDENCE_THRESHOLD = 3; 
-
+        // UPDATE PERMINTAAN USER:
+        const CONFIDENCE_THRESHOLD = 5; // Dinaikkan untuk mengurangi glitch
+        
         const synth = window.speechSynthesis;
         function speak(text) {
-            if (synth.speaking) synth.cancel(); // Potong suara lama agar tidak delay
+            if (synth.speaking) synth.cancel(); 
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'id-ID';
             utterance.rate = 1.3; 
@@ -386,16 +381,14 @@
             canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
 
             let currentFrameTotal = 0;
-            let currentFramePosture = []; // Array untuk menyimpan status tiap jari (0 atau 1)
+            let currentFramePosture = []; 
 
             if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-                // Loop untuk setiap tangan
                 for (const [index, landmarks] of results.multiHandLandmarks.entries()) {
                     const handedness = results.multiHandedness[index].label; 
                     drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, {color: '#00f2ff', lineWidth: 2});
                     drawLandmarks(canvasCtx, landmarks, {color: '#ffffff', lineWidth: 1, radius: 4});
 
-                    // Logika Jari per Tangan
                     let fingersOnHand = 0;
                     
                     // Jempol
@@ -406,7 +399,7 @@
                         if (landmarks[4].x > landmarks[3].x) thumbOpen = true;
                     }
                     if (thumbOpen) fingersOnHand++;
-                    currentFramePosture.push(thumbOpen ? 1 : 0); // Simpan status jempol
+                    currentFramePosture.push(thumbOpen ? 1 : 0); 
 
                     // 4 Jari Lain
                     const fingerTips = [8, 12, 16, 20];
@@ -416,38 +409,31 @@
                         if (landmarks[fingerTips[i]].y < landmarks[fingerPips[i]].y) fingerOpen = true;
                         
                         if (fingerOpen) fingersOnHand++;
-                        currentFramePosture.push(fingerOpen ? 1 : 0); // Simpan status jari lain
+                        currentFramePosture.push(fingerOpen ? 1 : 0); 
                     }
                     currentFrameTotal += fingersOnHand;
                 }
 
-                // Membuat "Signature" Unik dari Postur saat ini
-                // Contoh Signature: "10110-00000" (Jempol, Tengah, Manis tegak)
-                // Ini membedakan "2" (Telunjuk+Tengah) dengan "2" (Jempol+Kelingking)
                 const currentSignatureString = currentFramePosture.join("");
 
-                // STABILISASI BERDASARKAN POSTUR, BUKAN HANYA ANGKA
                 if (currentSignatureString === rawPostureSignature) {
                     frameConfidence++;
                 } else {
                     rawPostureSignature = currentSignatureString;
-                    frameConfidence = 0; // Reset instan jika postur berubah sedikitpun
+                    frameConfidence = 0; 
                 }
 
                 if (frameConfidence > CONFIDENCE_THRESHOLD) {
-                    // Jika postur stabil DAN (berbeda dari postur terakhir yg diumumkan)
                     if (stablePostureSignature !== rawPostureSignature) {
                         stablePostureSignature = rawPostureSignature;
                         
-                        // Update UI
                         displayNumber.innerText = currentFrameTotal;
                         let text = numberToText[currentFrameTotal] || currentFrameTotal.toString();
                         displayText.innerText = text;
                         speak(text);
                         
-                        // Efek Visual
                         boxNum.classList.remove('pulse-active');
-                        void boxNum.offsetWidth; // Trigger reflow
+                        void boxNum.offsetWidth; 
                         boxNum.classList.add('pulse-active');
                         
                         displayNumber.style.color = "#00ff88";
@@ -458,10 +444,8 @@
                     }
                 }
             } else {
-                // Jika tangan hilang, RESET stabilisasi
                 frameConfidence = 0;
                 rawPostureSignature = "";
-                // Agar jika tangan masuk lagi dengan angka sama, dia tetap mendeteksi ulang
                 if (stablePostureSignature !== "") {
                     stablePostureSignature = "";
                     displayNumber.innerText = "-";
@@ -475,9 +459,10 @@
         
         hands.setOptions({
             maxNumHands: 2, 
-            modelComplexity: 1, // Kualitas Bagus
-            minDetectionConfidence: 0.6, // Lebih strict agar tidak glitch
-            minTrackingConfidence: 0.6
+            modelComplexity: 1, 
+            // UPDATE PERMINTAAN USER:
+            minDetectionConfidence: 0.4, // Diturunkan agar deteksi 1 tangan lebih cepat (tidak ragu mencari tangan ke-2)
+            minTrackingConfidence: 0.4   // Diturunkan agar tracking lebih smooth
         });
         hands.onResults(onResults);
 
