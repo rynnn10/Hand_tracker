@@ -15,273 +15,238 @@
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
 
     <style>
+        /* --- RESET & LAYOUT UTAMA --- */
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
         body {
             margin: 0;
-            background-color: #050505; /* Warna dasar gelap */
+            background-color: #050505;
             font-family: 'Rajdhani', sans-serif;
             color: white;
+            /* Menggunakan dvh (dynamic viewport height) agar pas di mobile browser dengan address bar */
+            height: 100dvh; 
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: space-between;
-            height: 100vh;
-            overflow: hidden;
-            position: relative;
+            justify-content: space-between; /* Header atas, Video tengah, Footer bawah */
+            overflow: hidden; /* Mencegah scroll */
         }
 
         /* --- BACKGROUND PARTIKEL --- */
         #bg-canvas {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0; /* Paling belakang */
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            opacity: 0.6; /* Sedikit redup agar teks lebih jelas */
         }
 
-        /* --- UI LAYOUT (Z-Index harus > 0 agar di atas partikel) --- */
+        /* --- HEADER (Compact) --- */
         header {
             text-align: center;
-            padding-top: 15px;
+            padding: 10px 0;
             z-index: 2;
-            position: relative;
-            text-shadow: 0 4px 10px rgba(0,0,0,0.8);
+            flex-shrink: 0; /* Header tidak boleh mengecil */
         }
 
         h1 {
             font-family: 'Orbitron', sans-serif;
-            font-size: 2rem;
+            font-size: 1.5rem; /* Ukuran font lebih ramah mobile */
             margin: 0;
-            letter-spacing: 3px;
+            letter-spacing: 2px;
             background: linear-gradient(90deg, #00f2ff, #00ff88);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 0 10px rgba(0, 242, 255, 0.5));
+            filter: drop-shadow(0 0 5px rgba(0, 242, 255, 0.5));
         }
 
         p.subtitle {
-            font-size: 1rem;
-            color: #ccc;
-            margin-top: 5px;
-            letter-spacing: 2px;
+            font-size: 0.8rem;
+            color: #aaa;
+            margin: 2px 0 0 0;
+            letter-spacing: 1px;
         }
 
+        /* --- CONTAINER UTAMA (Flexible) --- */
         .container {
             position: relative;
             z-index: 2;
-            width: 90%;
-            max-width: 600px;
+            width: 100%;
+            padding: 0 15px;
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
+            flex-grow: 1; /* Mengisi ruang kosong di tengah */
+            max-height: 80vh; /* Mencegah container terlalu tinggi */
         }
 
-        /* Frame Video Cyberpunk */
+        /* --- VIDEO WRAPPER (Responsive Aspect Ratio) --- */
         .video-wrapper {
             position: relative;
             width: 100%;
-            border-radius: 15px;
+            max-width: 500px; /* Batas lebar di tablet/desktop */
+            /* KUNCI RESPONSIF: */
+            aspect-ratio: 3/4; /* Rasio potret agar pas di HP */
+            max-height: 55vh; /* Video tidak boleh lebih dari 55% tinggi layar */
+            
+            border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 0 40px rgba(0, 242, 255, 0.2);
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.15);
             border: 1px solid rgba(0, 242, 255, 0.3);
             background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(5px);
-            aspect-ratio: 4/3;
         }
 
-        /* Hiasan Sudut Video */
-        .video-wrapper::before, .video-wrapper::after {
-            content: '';
-            position: absolute;
-            width: 30px;
-            height: 30px;
-            border: 3px solid #00f2ff;
-            transition: 0.3s;
-            z-index: 5;
-            pointer-events: none;
+        /* Desktop Override: Kembali ke landscape jika layar lebar */
+        @media (min-width: 600px) {
+            .video-wrapper {
+                aspect-ratio: 4/3;
+                max-height: 60vh;
+            }
+            h1 { font-size: 2rem; }
         }
-        .video-wrapper::before { top: 0; left: 0; border-right: none; border-bottom: none; border-radius: 10px 0 0 0; }
-        .video-wrapper::after { bottom: 0; right: 0; border-left: none; border-top: none; border-radius: 0 0 10px 0; }
+
+        /* Hiasan Sudut Video Cyberpunk */
+        .video-wrapper::before, .video-wrapper::after {
+            content: ''; position: absolute; width: 20px; height: 20px;
+            border: 2px solid #00f2ff; z-index: 5; pointer-events: none;
+        }
+        .video-wrapper::before { top: 0; left: 0; border-right: 0; border-bottom: 0; }
+        .video-wrapper::after { bottom: 0; right: 0; border-left: 0; border-top: 0; }
 
         video, #output_canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%;
             transform: scaleX(-1);
             object-fit: cover;
         }
 
-        /* HUD Overlay */
+        /* --- HUD (DISPLAY ANGKA) --- */
         .hud-overlay {
             position: absolute;
-            bottom: 15px;
-            left: 15px;
-            right: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            pointer-events: none;
-            z-index: 6;
+            bottom: 10px; left: 10px; right: 10px;
+            display: flex; justify-content: space-between; align-items: flex-end;
+            pointer-events: none; z-index: 6;
         }
 
         .count-box {
-            background: rgba(0, 20, 40, 0.7);
-            backdrop-filter: blur(10px);
-            padding: 10px 20px;
-            border-radius: 10px;
-            border: 1px solid rgba(0, 242, 255, 0.3);
-            min-width: 80px;
+            background: rgba(0, 10, 20, 0.6);
+            backdrop-filter: blur(4px);
+            padding: 5px 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 242, 255, 0.2);
         }
 
-        .label-text {
-            font-size: 0.8rem;
-            color: #00f2ff;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 5px;
-        }
+        .label-text { font-size: 0.7rem; color: #00f2ff; margin-bottom: 2px; }
+        .number-big { font-family: 'Orbitron'; font-size: 2.5rem; font-weight: bold; line-height: 1; text-shadow: 0 0 10px #00f2ff; }
+        .text-result { font-size: 1.2rem; font-weight: bold; text-transform: uppercase; }
 
-        .number-big {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 3rem;
-            font-weight: bold;
-            color: white;
-            line-height: 1;
-            text-shadow: 0 0 10px #00f2ff;
-        }
-
-        .text-result {
-            font-size: 1.5rem;
-            color: white;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-
-        /* Controls */
+        /* --- CONTROLS --- */
         .controls {
-            margin-top: 20px;
+            margin-top: 15px;
             z-index: 5;
+            flex-shrink: 0;
         }
 
         #cam-btn {
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.6);
             border: 1px solid #ff0055;
             color: #ff0055;
-            padding: 12px 35px;
-            border-radius: 5px;
+            padding: 10px 25px;
+            border-radius: 50px;
             font-weight: bold;
-            font-family: 'Orbitron', sans-serif;
+            font-family: 'Orbitron';
             cursor: pointer;
-            transition: 0.3s;
-            text-transform: uppercase;
+            font-size: 0.8rem;
             letter-spacing: 1px;
+            transition: 0.3s;
         }
+        #cam-btn.active { border-color: #00ff88; color: #00ff88; }
+        #cam-btn:active { transform: scale(0.95); background: rgba(255,255,255,0.1); }
 
-        #cam-btn:hover {
-            background: #ff0055;
-            color: white;
-            box-shadow: 0 0 20px rgba(255, 0, 85, 0.5);
-        }
-
-        #cam-btn.active {
-            border-color: #00ff88;
-            color: #00ff88;
-        }
-        #cam-btn.active:hover {
-            background: #00ff88;
-            color: black;
-            box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
-        }
-
-        /* Footer */
+        /* --- FOOTER (FIXED BOTTOM VISIBILITY) --- */
         footer {
             width: 100%;
-            padding: 15px 0;
+            padding: 10px 0;
             text-align: center;
-            font-size: 0.9rem;
-            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.4);
             z-index: 2;
-            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+            background: linear-gradient(to top, rgba(0,0,0,1), transparent);
+            flex-shrink: 0; /* Footer tidak boleh hilang */
         }
 
-        /* Loading */
+        /* --- LOADING & STATUS --- */
         #loading {
-            position: absolute;
-            top: 50%; left: 50%;
+            position: absolute; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            color: #00f2ff;
-            text-align: center;
-            z-index: 10;
-            font-family: 'Orbitron';
-            animation: pulse 1.5s infinite;
+            color: #00f2ff; font-family: 'Orbitron'; font-size: 0.9rem;
+            z-index: 10; text-align: center;
         }
-
+        .pulse { animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+
     </style>
 </head>
 <body>
 
-    <!-- KANVAS BACKGROUND -->
+    <!-- LAYER 1: BACKGROUND -->
     <canvas id="bg-canvas"></canvas>
 
+    <!-- LAYER 2: KONTEN UTAMA -->
     <header>
         <h1>AI HAND TRACKER</h1>
-        <p class="subtitle">INTERACTIVE SYSTEM</p>
+        <p class="subtitle">MOBILE EDITION</p>
     </header>
 
     <div class="container">
         <div class="video-wrapper">
-            <div id="loading">INITIALIZING SYSTEM...</div>
-            <video id="input_video"></video>
+            <div id="loading" class="pulse">INITIALIZING SYSTEM...</div>
+            <video id="input_video" playsinline></video>
             <canvas id="output_canvas"></canvas>
             
             <div class="hud-overlay" id="hud">
                 <div class="count-box">
-                    <div class="label-text">COUNT</div>
+                    <div class="label-text">JARI</div>
                     <div class="number-big" id="display-number">-</div>
                 </div>
                 <div class="count-box" style="text-align: right;">
                     <div class="label-text">STATUS</div>
-                    <div class="text-result" id="display-text">READY</div>
+                    <div class="text-result" id="display-text">SIAP</div>
                 </div>
             </div>
             
-            <div id="camera-off-msg" style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:#555; font-family:'Orbitron'; font-size: 1.5rem;">SYSTEM OFFLINE</div>
+            <div id="camera-off-msg" style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:#555; font-family:'Orbitron'; font-size: 1rem; white-space: nowrap;">SYSTEM OFFLINE</div>
         </div>
 
         <div class="controls">
-            <button id="cam-btn" onclick="toggleCamera()">DEACTIVATE CAMERA</button>
+            <button id="cam-btn" onclick="toggleCamera()">MATIKAN KAMERA</button>
         </div>
     </div>
 
     <footer>
-        &copy; Copyright Riyan 2025 | Powered by MediaPipe AI
+        &copy; Copyright Riyan 2025 | Powered by MediaPipe
     </footer>
 
+    <!-- SCRIPT LOGIC (SAMA SEPERTI SEBELUMNYA, DIPERBARUI UTK MOBILE) -->
     <script>
-        // ==========================================
-        // BAGIAN 1: BACKGROUND PARTIKEL INTERAKTIF
-        // ==========================================
+        // --- 1. BACKGROUND PARTICLES ---
         const bgCanvas = document.getElementById('bg-canvas');
         const bgCtx = bgCanvas.getContext('2d');
         let particlesArray;
 
-        bgCanvas.width = window.innerWidth;
-        bgCanvas.height = window.innerHeight;
-
-        let mouse = { x: null, y: null, radius: (bgCanvas.height/80) * (bgCanvas.width/80) }
-
-        window.addEventListener('mousemove', (e) => { mouse.x = e.x; mouse.y = e.y; });
-        window.addEventListener('touchstart', (e) => { mouse.x = e.touches[0].clientX; mouse.y = e.touches[0].clientY; });
-        window.addEventListener('touchmove', (e) => { mouse.x = e.touches[0].clientX; mouse.y = e.touches[0].clientY; });
-        window.addEventListener('touchend', () => { mouse.x = null; mouse.y = null; });
-        window.addEventListener('resize', () => {
+        function resizeCanvas() {
             bgCanvas.width = window.innerWidth;
             bgCanvas.height = window.innerHeight;
-            mouse.radius = (bgCanvas.height/80) * (bgCanvas.width/80);
-            initParticles();
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        let mouse = { x: null, y: null, radius: 100 }
+
+        window.addEventListener('mousemove', (e) => { mouse.x = e.x; mouse.y = e.y; });
+        window.addEventListener('touchmove', (e) => { 
+            mouse.x = e.touches[0].clientX; mouse.y = e.touches[0].clientY; 
         });
 
         class Particle {
@@ -299,17 +264,18 @@
             update() {
                 if (this.x > bgCanvas.width || this.x < 0) this.dirX = -this.dirX;
                 if (this.y > bgCanvas.height || this.y < 0) this.dirY = -this.dirY;
-
-                // Interaksi Mouse
+                
+                // Mouse Interaction
                 let dx = mouse.x - this.x;
                 let dy = mouse.y - this.y;
                 let distance = Math.sqrt(dx*dx + dy*dy);
                 if (distance < mouse.radius + this.size) {
-                    if (mouse.x < this.x && this.x < bgCanvas.width - this.size * 10) this.x += 3;
-                    if (mouse.x > this.x && this.x > this.size * 10) this.x -= 3;
-                    if (mouse.y < this.y && this.y < bgCanvas.height - this.size * 10) this.y += 3;
-                    if (mouse.y > this.y && this.y > this.size * 10) this.y -= 3;
+                    if (mouse.x < this.x && this.x < bgCanvas.width - 10) this.x += 2;
+                    if (mouse.x > this.x && this.x > 10) this.x -= 2;
+                    if (mouse.y < this.y && this.y < bgCanvas.height - 10) this.y += 2;
+                    if (mouse.y > this.y && this.y > 10) this.y -= 2;
                 }
+                
                 this.x += this.dirX;
                 this.y += this.dirY;
                 this.draw();
@@ -318,35 +284,14 @@
 
         function initParticles() {
             particlesArray = [];
-            // Jumlah partikel responsif terhadap ukuran layar
-            let numberOfParticles = (bgCanvas.height * bgCanvas.width) / 10000;
+            let numberOfParticles = (bgCanvas.height * bgCanvas.width) / 15000; // Dikurangi agar ringan di HP
             for (let i = 0; i < numberOfParticles; i++) {
                 let size = (Math.random() * 2) + 1;
-                let x = (Math.random() * ((innerWidth - size * 2) - (size * 2)) + size * 2);
-                let y = (Math.random() * ((innerHeight - size * 2) - (size * 2)) + size * 2);
-                let dirX = (Math.random() * 1) - 0.5; // Kecepatan lambat
-                let dirY = (Math.random() * 1) - 0.5;
-                let color = '#00f2ff';
-                particlesArray.push(new Particle(x, y, dirX, dirY, size, color));
-            }
-        }
-
-        function connectParticles() {
-            let opacityValue = 1;
-            for (let a = 0; a < particlesArray.length; a++) {
-                for (let b = a; b < particlesArray.length; b++) {
-                    let distance = ((particlesArray[a].x - particlesArray[b].x) * (particlesArray[a].x - particlesArray[b].x)) + 
-                                   ((particlesArray[a].y - particlesArray[b].y) * (particlesArray[a].y - particlesArray[b].y));
-                    if (distance < (bgCanvas.width/7) * (bgCanvas.height/7)) {
-                        opacityValue = 1 - (distance/20000);
-                        bgCtx.strokeStyle = 'rgba(0, 242, 255,' + opacityValue + ')';
-                        bgCtx.lineWidth = 1;
-                        bgCtx.beginPath();
-                        bgCtx.moveTo(particlesArray[a].x, particlesArray[a].y);
-                        bgCtx.lineTo(particlesArray[b].x, particlesArray[b].y);
-                        bgCtx.stroke();
-                    }
-                }
+                let x = Math.random() * innerWidth;
+                let y = Math.random() * innerHeight;
+                let dirX = (Math.random() * 0.4) - 0.2;
+                let dirY = (Math.random() * 0.4) - 0.2;
+                particlesArray.push(new Particle(x, y, dirX, dirY, size, '#00f2ff'));
             }
         }
 
@@ -356,15 +301,11 @@
             for (let i = 0; i < particlesArray.length; i++) {
                 particlesArray[i].update();
             }
-            connectParticles();
         }
-
         initParticles();
         animateParticles();
 
-        // ==========================================
-        // BAGIAN 2: AI FINGER COUNTER LOGIC
-        // ==========================================
+        // --- 2. AI HAND TRACKING ---
         const videoElement = document.getElementById('input_video');
         const canvasElement = document.getElementById('output_canvas');
         const canvasCtx = canvasElement.getContext('2d');
@@ -379,14 +320,14 @@
         let rawFingerCount = 0;
         let stableFingerCount = -1;
         let frameConfidence = 0;
-        const CONFIDENCE_THRESHOLD = 10;
+        const CONFIDENCE_THRESHOLD = 8; // Sedikit dikurangi agar responsif di HP
 
         const synth = window.speechSynthesis;
         function speak(text) {
             if (synth.speaking) synth.cancel();
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'id-ID';
-            utterance.rate = 1.1;
+            utterance.rate = 1.2;
             synth.speak(utterance);
         }
 
@@ -394,6 +335,7 @@
 
         function onResults(results) {
             loadingScreen.style.display = 'none';
+            // Set ukuran canvas agar pas dengan video yg mungkin ter-scale
             canvasElement.width = videoElement.videoWidth;
             canvasElement.height = videoElement.videoHeight;
 
@@ -405,14 +347,12 @@
                 const landmarks = results.multiHandLandmarks[0];
                 const handedness = results.multiHandedness[0].label; 
 
-                // Gambar kerangka tangan Cyber
                 drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, {color: '#00f2ff', lineWidth: 2});
                 drawLandmarks(canvasCtx, landmarks, {color: '#ffffff', lineWidth: 1, radius: 3});
 
-                // Hitung Jari
                 let currentFrameCount = 0;
                 
-                // Jempol
+                // Jempol Logic
                 if (handedness === 'Right') { 
                     if (landmarks[4].x < landmarks[3].x) currentFrameCount++;
                 } else {
@@ -441,23 +381,17 @@
                         displayText.innerText = numberToText[stableFingerCount];
                         speak(numberToText[stableFingerCount]);
                         
-                        // Efek Pop pada Angka
-                        displayNumber.style.transition = "0.1s";
-                        displayNumber.style.textShadow = "0 0 30px #00ff88";
+                        // Efek Visual
                         displayNumber.style.color = "#00ff88";
-                        setTimeout(() => {
-                            displayNumber.style.textShadow = "0 0 10px #00f2ff";
-                            displayNumber.style.color = "white";
-                        }, 200);
+                        setTimeout(() => displayNumber.style.color = "white", 200);
                     }
                 }
-
             } else {
                 frameConfidence = 0;
                 if (stableFingerCount !== -1) {
                     stableFingerCount = -1;
                     displayNumber.innerText = "-";
-                    displayText.innerText = "READY";
+                    displayText.innerText = "SIAP";
                 }
             }
             canvasCtx.restore();
@@ -466,16 +400,16 @@
         const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
         hands.setOptions({
             maxNumHands: 1,
-            modelComplexity: 1,
-            minDetectionConfidence: 0.6,
-            minTrackingConfidence: 0.6
+            modelComplexity: 0, // Lite model agar cepat di HP
+            minDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5
         });
         hands.onResults(onResults);
 
         const camera = new Camera(videoElement, {
             onFrame: async () => await hands.send({image: videoElement}),
             width: 640,
-            height: 480
+            height: 480 // Resolusi lebih rendah agar ringan di HP
         });
 
         camera.start();
@@ -486,8 +420,7 @@
                 canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
                 canvasCtx.fillStyle = "#000";
                 canvasCtx.fillRect(0, 0, canvasElement.width, canvasElement.height);
-                
-                camBtn.innerText = "ACTIVATE CAMERA";
+                camBtn.innerText = "HIDUPKAN KAMERA";
                 camBtn.classList.add('active');
                 camOffMsg.style.display = "block";
                 hud.style.opacity = "0.2";
@@ -496,8 +429,7 @@
                 camOffMsg.style.display = "none";
                 loadingScreen.style.display = "block";
                 camera.start().then(() => loadingScreen.style.display = "none");
-
-                camBtn.innerText = "DEACTIVATE CAMERA";
+                camBtn.innerText = "MATIKAN KAMERA";
                 camBtn.classList.remove('active');
                 hud.style.opacity = "1";
                 isCameraOn = true;
