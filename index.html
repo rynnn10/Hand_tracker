@@ -23,13 +23,12 @@
             background-color: #050505;
             font-family: 'Rajdhani', sans-serif;
             color: white;
-            /* Menggunakan dvh (dynamic viewport height) agar pas di mobile browser dengan address bar */
-            height: 100dvh; 
+            height: 100dvh; /* Dynamic Viewport Height */
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: space-between; /* Header atas, Video tengah, Footer bawah */
-            overflow: hidden; /* Mencegah scroll */
+            justify-content: space-between; 
+            overflow: hidden;
         }
 
         /* --- BACKGROUND PARTIKEL --- */
@@ -38,20 +37,19 @@
             top: 0; left: 0;
             width: 100%; height: 100%;
             z-index: 0;
-            opacity: 0.6; /* Sedikit redup agar teks lebih jelas */
         }
 
-        /* --- HEADER (Compact) --- */
+        /* --- HEADER --- */
         header {
             text-align: center;
             padding: 10px 0;
             z-index: 2;
-            flex-shrink: 0; /* Header tidak boleh mengecil */
+            flex-shrink: 0;
         }
 
         h1 {
             font-family: 'Orbitron', sans-serif;
-            font-size: 1.5rem; /* Ukuran font lebih ramah mobile */
+            font-size: 1.5rem;
             margin: 0;
             letter-spacing: 2px;
             background: linear-gradient(90deg, #00f2ff, #00ff88);
@@ -67,7 +65,7 @@
             letter-spacing: 1px;
         }
 
-        /* --- CONTAINER UTAMA (Flexible) --- */
+        /* --- CONTAINER UTAMA --- */
         .container {
             position: relative;
             z-index: 2;
@@ -77,19 +75,17 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            flex-grow: 1; /* Mengisi ruang kosong di tengah */
-            max-height: 80vh; /* Mencegah container terlalu tinggi */
+            flex-grow: 1;
+            max-height: 80vh;
         }
 
-        /* --- VIDEO WRAPPER (Responsive Aspect Ratio) --- */
+        /* --- VIDEO WRAPPER --- */
         .video-wrapper {
             position: relative;
             width: 100%;
-            max-width: 500px; /* Batas lebar di tablet/desktop */
-            /* KUNCI RESPONSIF: */
-            aspect-ratio: 3/4; /* Rasio potret agar pas di HP */
-            max-height: 55vh; /* Video tidak boleh lebih dari 55% tinggi layar */
-            
+            max-width: 500px;
+            aspect-ratio: 3/4; /* Rasio Potret Mobile */
+            max-height: 55vh;
             border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 0 20px rgba(0, 242, 255, 0.15);
@@ -97,16 +93,11 @@
             background: rgba(0, 0, 0, 0.8);
         }
 
-        /* Desktop Override: Kembali ke landscape jika layar lebar */
         @media (min-width: 600px) {
-            .video-wrapper {
-                aspect-ratio: 4/3;
-                max-height: 60vh;
-            }
+            .video-wrapper { aspect-ratio: 4/3; max-height: 60vh; }
             h1 { font-size: 2rem; }
         }
 
-        /* Hiasan Sudut Video Cyberpunk */
         .video-wrapper::before, .video-wrapper::after {
             content: ''; position: absolute; width: 20px; height: 20px;
             border: 2px solid #00f2ff; z-index: 5; pointer-events: none;
@@ -121,7 +112,7 @@
             object-fit: cover;
         }
 
-        /* --- HUD (DISPLAY ANGKA) --- */
+        /* --- HUD (DISPLAY ANGKA - FIXED WIDTH) --- */
         .hud-overlay {
             position: absolute;
             bottom: 10px; left: 10px; right: 10px;
@@ -130,16 +121,40 @@
         }
 
         .count-box {
-            background: rgba(0, 10, 20, 0.6);
+            background: rgba(0, 10, 20, 0.7);
             backdrop-filter: blur(4px);
-            padding: 5px 15px;
+            padding: 8px 0; /* Padding atas bawah saja */
             border-radius: 8px;
             border: 1px solid rgba(0, 242, 255, 0.2);
+            /* --- MODIFIKASI FIXED WIDTH --- */
+            width: 110px; /* Lebar Tetap */
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Teks Rata Tengah */
+            justify-content: center;
         }
 
         .label-text { font-size: 0.7rem; color: #00f2ff; margin-bottom: 2px; }
-        .number-big { font-family: 'Orbitron'; font-size: 2.5rem; font-weight: bold; line-height: 1; text-shadow: 0 0 10px #00f2ff; }
-        .text-result { font-size: 1.2rem; font-weight: bold; text-transform: uppercase; }
+        
+        .number-big { 
+            font-family: 'Orbitron'; 
+            font-size: 2.5rem; 
+            font-weight: bold; 
+            line-height: 1; 
+            text-shadow: 0 0 10px #00f2ff; 
+            /* Memastikan angka tetap di tengah */
+            text-align: center;
+            width: 100%;
+        }
+        
+        .text-result { 
+            font-size: 1.2rem; 
+            font-weight: bold; 
+            text-transform: uppercase;
+            /* Memastikan teks tetap di tengah */
+            text-align: center;
+            width: 100%;
+        }
 
         /* --- CONTROLS --- */
         .controls {
@@ -164,7 +179,7 @@
         #cam-btn.active { border-color: #00ff88; color: #00ff88; }
         #cam-btn:active { transform: scale(0.95); background: rgba(255,255,255,0.1); }
 
-        /* --- FOOTER (FIXED BOTTOM VISIBILITY) --- */
+        /* --- FOOTER --- */
         footer {
             width: 100%;
             padding: 10px 0;
@@ -173,10 +188,10 @@
             color: rgba(255, 255, 255, 0.4);
             z-index: 2;
             background: linear-gradient(to top, rgba(0,0,0,1), transparent);
-            flex-shrink: 0; /* Footer tidak boleh hilang */
+            flex-shrink: 0;
         }
 
-        /* --- LOADING & STATUS --- */
+        /* --- LOADING --- */
         #loading {
             position: absolute; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
@@ -210,7 +225,7 @@
                     <div class="label-text">JARI</div>
                     <div class="number-big" id="display-number">-</div>
                 </div>
-                <div class="count-box" style="text-align: right;">
+                <div class="count-box">
                     <div class="label-text">STATUS</div>
                     <div class="text-result" id="display-text">SIAP</div>
                 </div>
@@ -228,9 +243,8 @@
         &copy; Copyright Riyan 2025 | Powered by MediaPipe
     </footer>
 
-    <!-- SCRIPT LOGIC (SAMA SEPERTI SEBELUMNYA, DIPERBARUI UTK MOBILE) -->
     <script>
-        // --- 1. BACKGROUND PARTICLES ---
+        // --- 1. BACKGROUND PARTICLES (INTERAKTIF RESTORED) ---
         const bgCanvas = document.getElementById('bg-canvas');
         const bgCtx = bgCanvas.getContext('2d');
         let particlesArray;
@@ -242,12 +256,13 @@
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
 
-        let mouse = { x: null, y: null, radius: 100 }
+        let mouse = { x: null, y: null, radius: 120 } // Radius interaksi
 
         window.addEventListener('mousemove', (e) => { mouse.x = e.x; mouse.y = e.y; });
         window.addEventListener('touchmove', (e) => { 
             mouse.x = e.touches[0].clientX; mouse.y = e.touches[0].clientY; 
         });
+        window.addEventListener('touchend', () => { mouse.x = null; mouse.y = null; });
 
         class Particle {
             constructor(x, y, dirX, dirY, size, color) {
@@ -262,18 +277,20 @@
                 bgCtx.fill();
             }
             update() {
+                // Bounce edges
                 if (this.x > bgCanvas.width || this.x < 0) this.dirX = -this.dirX;
                 if (this.y > bgCanvas.height || this.y < 0) this.dirY = -this.dirY;
                 
-                // Mouse Interaction
+                // --- INTERAKSI MOUSE/TOUCH (DIKEMBALIKAN) ---
                 let dx = mouse.x - this.x;
                 let dy = mouse.y - this.y;
                 let distance = Math.sqrt(dx*dx + dy*dy);
+                
                 if (distance < mouse.radius + this.size) {
-                    if (mouse.x < this.x && this.x < bgCanvas.width - 10) this.x += 2;
-                    if (mouse.x > this.x && this.x > 10) this.x -= 2;
-                    if (mouse.y < this.y && this.y < bgCanvas.height - 10) this.y += 2;
-                    if (mouse.y > this.y && this.y > 10) this.y -= 2;
+                    if (mouse.x < this.x && this.x < bgCanvas.width - 10) this.x += 3;
+                    if (mouse.x > this.x && this.x > 10) this.x -= 3;
+                    if (mouse.y < this.y && this.y < bgCanvas.height - 10) this.y += 3;
+                    if (mouse.y > this.y && this.y > 10) this.y -= 3;
                 }
                 
                 this.x += this.dirX;
@@ -284,7 +301,7 @@
 
         function initParticles() {
             particlesArray = [];
-            let numberOfParticles = (bgCanvas.height * bgCanvas.width) / 15000; // Dikurangi agar ringan di HP
+            let numberOfParticles = (bgCanvas.height * bgCanvas.width) / 11000;
             for (let i = 0; i < numberOfParticles; i++) {
                 let size = (Math.random() * 2) + 1;
                 let x = Math.random() * innerWidth;
@@ -295,17 +312,38 @@
             }
         }
 
+        // --- GARIS PENGHUBUNG (DIKEMBALIKAN) ---
+        function connectParticles() {
+            let opacityValue = 1;
+            for (let a = 0; a < particlesArray.length; a++) {
+                for (let b = a; b < particlesArray.length; b++) {
+                    let distance = ((particlesArray[a].x - particlesArray[b].x) * (particlesArray[a].x - particlesArray[b].x)) + 
+                                   ((particlesArray[a].y - particlesArray[b].y) * (particlesArray[a].y - particlesArray[b].y));
+                    if (distance < (bgCanvas.width/7) * (bgCanvas.height/7)) {
+                        opacityValue = 1 - (distance/20000);
+                        bgCtx.strokeStyle = 'rgba(0, 242, 255,' + opacityValue + ')';
+                        bgCtx.lineWidth = 1;
+                        bgCtx.beginPath();
+                        bgCtx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                        bgCtx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                        bgCtx.stroke();
+                    }
+                }
+            }
+        }
+
         function animateParticles() {
             requestAnimationFrame(animateParticles);
             bgCtx.clearRect(0, 0, innerWidth, innerHeight);
             for (let i = 0; i < particlesArray.length; i++) {
                 particlesArray[i].update();
             }
+            connectParticles(); // Garis jaring aktif kembali
         }
         initParticles();
         animateParticles();
 
-        // --- 2. AI HAND TRACKING ---
+        // --- 2. AI HAND TRACKING (LOGIKA TETAP SAMA) ---
         const videoElement = document.getElementById('input_video');
         const canvasElement = document.getElementById('output_canvas');
         const canvasCtx = canvasElement.getContext('2d');
@@ -320,7 +358,7 @@
         let rawFingerCount = 0;
         let stableFingerCount = -1;
         let frameConfidence = 0;
-        const CONFIDENCE_THRESHOLD = 8; // Sedikit dikurangi agar responsif di HP
+        const CONFIDENCE_THRESHOLD = 8; 
 
         const synth = window.speechSynthesis;
         function speak(text) {
@@ -335,7 +373,6 @@
 
         function onResults(results) {
             loadingScreen.style.display = 'none';
-            // Set ukuran canvas agar pas dengan video yg mungkin ter-scale
             canvasElement.width = videoElement.videoWidth;
             canvasElement.height = videoElement.videoHeight;
 
@@ -352,21 +389,18 @@
 
                 let currentFrameCount = 0;
                 
-                // Jempol Logic
                 if (handedness === 'Right') { 
                     if (landmarks[4].x < landmarks[3].x) currentFrameCount++;
                 } else {
                     if (landmarks[4].x > landmarks[3].x) currentFrameCount++;
                 }
 
-                // 4 Jari Lain
                 const fingerTips = [8, 12, 16, 20];
                 const fingerPips = [6, 10, 14, 18]; 
                 for (let i = 0; i < fingerTips.length; i++) {
                     if (landmarks[fingerTips[i]].y < landmarks[fingerPips[i]].y) currentFrameCount++;
                 }
 
-                // Stabilisasi
                 if (currentFrameCount === rawFingerCount) {
                     frameConfidence++;
                 } else {
@@ -381,7 +415,6 @@
                         displayText.innerText = numberToText[stableFingerCount];
                         speak(numberToText[stableFingerCount]);
                         
-                        // Efek Visual
                         displayNumber.style.color = "#00ff88";
                         setTimeout(() => displayNumber.style.color = "white", 200);
                     }
@@ -400,7 +433,7 @@
         const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
         hands.setOptions({
             maxNumHands: 1,
-            modelComplexity: 0, // Lite model agar cepat di HP
+            modelComplexity: 0, 
             minDetectionConfidence: 0.5,
             minTrackingConfidence: 0.5
         });
@@ -409,7 +442,7 @@
         const camera = new Camera(videoElement, {
             onFrame: async () => await hands.send({image: videoElement}),
             width: 640,
-            height: 480 // Resolusi lebih rendah agar ringan di HP
+            height: 480 
         });
 
         camera.start();
